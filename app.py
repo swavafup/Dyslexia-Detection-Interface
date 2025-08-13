@@ -54,10 +54,16 @@ if uploaded_file is not None:
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
-    # Run prediction
-    label, conf, probs = predict_dyslexia(img)
+    # Add Predict button
+    if st.button("Predict"):
+        label, conf, probs = predict_dyslexia(img)
 
-    st.subheader(f"Prediction: **{label}** ({conf:.2%} confidence)")
-    st.write("### Class probabilities:")
-    for i, cls in enumerate(class_names):
-        st.write(f"- **{cls}**: {probs[i].item():.2%}")
+        # Store confidence (optional: in session state if needed later)
+        st.session_state["last_confidence"] = conf
+
+        st.subheader(f"Prediction: **{label}** ({conf:.2%} confidence)")
+        st.write("### Class probabilities:")
+        for i, cls in enumerate(class_names):
+            st.write(f"- **{cls}**: {probs[i].item():.2%}")
+
+        st.write(f"✅ Confidence stored: {st.session_state['last_confidence']:.2%}")
