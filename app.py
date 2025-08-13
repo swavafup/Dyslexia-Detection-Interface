@@ -10,24 +10,18 @@ from PIL import Image
 class_names = ["normal", "reversal", "corrected"]
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Function to load model safely
-def load_model(weights_path):
-    model = models.mobilenet_v2(pretrained=False)
-    model.classifier[1] = nn.Linear(model.last_channel, len(class_names))
-    
-    # Load weights with strict=False to check mismatches
-    state_dict = torch.load(weights_path, map_location=DEVICE)
-    missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
-    
-    if missing_keys or unexpected_keys:
-        st.warning(f"⚠️ Weight mismatch detected!\nMissing keys: {missing_keys}\nUnexpected keys: {unexpected_keys}")
-    
-    model.to(DEVICE)
-    model.eval()
-    return model
+# Create model architecture
+model = models.mobilenet_v2(pretrained=False)
+model.classifier[1] = nn.Linear(model.last_channel, len(class_names))
 
-# Load uploaded model
-model = load_model("best_mobilenetv2_dyslexia.pth")
+# Load weights with checks
+state_dict = torch.load("best_mobilenetv2_dyslexia.pth", map_location=DEVICE)
+missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+if missing_keys or unexpected_keys:
+    st.warning(f"⚠️ Weight mismatch detected!\nMissing keys: {missing_keys}\nUnexpected keys: {unexpected_keys}")
+
+model = model.to(DEVICE)
+model.eval()
 
 # -------------------------
 # 2. Image preprocessing
@@ -66,15 +60,15 @@ if uploaded_file is not None:
     if st.button("Predict"):
         label, conf, probs = predict_dyslexia(img)
 
-        # Store in session_state
-        st.session_state["last_label"] = label
+        # Store confidence in session_state
         st.session_state["last_confidence"] = conf
+        st.session_state["last_label"] = label
 
         st.subheader(f"Prediction: **{label}** ({conf:.2%} confidence)")
         st.write("### Class probabilities:")
         for i, cls in enumerate(class_names):
             st.write(f"- **{cls}**: {probs[i].item():.2%}")
 
-        # Warn if model predicts one class with extremely high confidence
+        # Warning if the model predicts 100% for one class (common sign of bad weights)
         if conf > 0.99:
-            st.warning("⚠️ Model predicts one class with near 100% confidence. Check if the loaded weights match the architecture.")
+            st.warning("⚠️ Model predicts one class with extremely high confidence. Check if the loaded weights match the architecture.")
