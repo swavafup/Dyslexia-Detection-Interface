@@ -8,7 +8,7 @@ from collections import OrderedDict
 # -------------------------
 # 1. Configuration
 # -------------------------
-class_names = ["normal", "reversal", "corrected"]
+class_names = ["normal", "reversal"]
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # -------------------------
@@ -102,6 +102,7 @@ if uploaded_file is not None:
         # Warning for extremely high confidence
         if conf > 0.99:
             st.warning("⚠️ Model predicts one class with extremely high confidence. Verify that weights match the architecture.")
+
 
 
 
