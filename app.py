@@ -19,7 +19,7 @@ model = models.mobilenet_v2(pretrained=False)
 model.classifier[1] = nn.Linear(model.last_channel, len(class_names))
 
 # Load weights safely
-state_dict = torch.load("best_mobilenet_dyslexia.pth", map_location=DEVICE)
+state_dict = torch.load("best_mobilenetv2_dyslexia.pth", map_location=DEVICE)
 
 # Strip 'module.' prefix if present (from DataParallel training)
 new_state_dict = OrderedDict()
@@ -102,4 +102,5 @@ if uploaded_file is not None:
         # Warning for extremely high confidence
         if conf > 0.99:
             st.warning("⚠️ Model predicts one class with extremely high confidence. Verify that weights match the architecture.")
+
 
